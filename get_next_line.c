@@ -1,4 +1,11 @@
-//#include <stdio.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #include "get_next_line.h"
 
@@ -88,13 +95,17 @@ char    *ft_read(int fd, char *buffer)
             free(temp);
             return (NULL);
         }
-        temp[i] = '\0';
-		len += i;
-		//printf("$%zu$\n", len);
-		buffer = ft_realloc(buffer, len);
-		ft_strcat(buffer, temp);
-        if (ft_strchr(buffer + len - i, '\n'))
-            i = 0;
+		if (i)
+		{
+        	temp[i] = '\0';
+			len += i;
+			buffer = ft_realloc(buffer, len);
+			ft_strcat(buffer, temp);
+        	if (ft_strchr(buffer, '\n'))
+        	    i = 0;
+		}
+		else
+			free(temp);
     }
     return (buffer);
 }
@@ -145,18 +156,15 @@ char    *get_next_line(int fd)
 	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, 0, 0) < 0)
         return (NULL);
 	buffers[fd] = ft_read(fd, buffers[fd]);
-	if (!buffers[fd])
+	if (!buffers[fd] || !buffers[fd][0])
 		return (NULL);
 	//printf("$%s$\n", buffers[fd]);
+	//printf("%i", fd);
 	line = ft_write_line(NULL, buffers[fd]);
 	//printf("$%s$\n", buffers[fd]);
 	return (line);
 }
 /*
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
 int main(int argc, char **argv)
 {
     int fd, line_count;
@@ -190,3 +198,39 @@ int main(int argc, char **argv)
         close(fd);
     }
 }*/
+
+int	main(int ac, char *av[])
+{
+	if (ac < 2)
+		return (0);
+
+	int n = 1;
+	int i = 1;
+	char *print;
+	while (av[n + 1])
+		n++;
+	int fd[n];
+	while (n-- > 0)
+	{
+		fd[n] = open(av[n], O_RDONLY);
+	}
+	n = ac - 1;
+	while (n)
+	{
+		printf("\n\t\t{%s}", av[n]);
+		printf("[%i]\n", fd[n - 1]);
+		while (i)
+		{
+			print = get_next_line(fd[n - 1]);
+			printf(">>>|%s|<<<\n", print);
+			if (!print)
+				i = 0;
+			else
+				free (print);
+		}
+		close(fd[n - 1]);
+		n--;
+	}
+	printf("\n\n\n");
+	system("Leaks a.out");
+}

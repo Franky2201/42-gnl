@@ -3,9 +3,16 @@
 
 # include <unistd.h>
 # include <stdlib.h>
+# include <limits.h>
+
+# ifdef BUFFER_SIZE
+#  if BUFFER_SIZE < 1 || BUFFER_SIZE > MAX_INT
+#   undef BUFFER_SIZE
+#  endif
+# endif
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1
+#  define BUFFER_SIZE 10
 # endif
 
 char    *get_next_line(int fd);
